@@ -1,29 +1,40 @@
 import streamlit as st
-from PIL import Image
+from PIL import Image, ImageOps
 
-st.title("Black and White Image Converter")
+st.title("Image to PDF Converter")
 
-# Upload image
 uploaded_file = st.file_uploader(
-    "Upload an Image",
+    "Upload Page Image",
     type=["jpg", "jpeg", "png"]
 )
 
 if uploaded_file is not None:
 
-    # Open image
     image = Image.open(uploaded_file)
 
-    # Show original image
     st.subheader("Original Image")
     st.image(image, use_container_width=True)
 
-    # Button click
-    if st.button("Convert to Black and White"):
+    if st.button("Convert to PDF Style"):
 
-        # Convert image to grayscale
-        bw_image = image.convert("L")
+        # Convert to grayscale
+        gray = ImageOps.grayscale(image)
 
-        # Display converted image
-        st.subheader("Black and White Image")
-        st.image(bw_image, use_container_width=True)
+        # Increase contrast / threshold
+        bw = gray.point(lambda x: 0 if x < 150 else 255, '1')
+
+        st.subheader("Processed Page")
+        st.image(bw, use_container_width=True)
+
+        # Save as PDF
+        pdf_path = "output.pdf"
+        bw.save(pdf_path)
+
+        # Download button
+        with open(pdf_path, "rb") as pdf_file:
+            st.download_button(
+                label="Download PDF",
+                data=pdf_file,
+                file_name="converted_page.pdf",
+                mime="application/pdf"
+            )
